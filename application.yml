@@ -1,0 +1,74 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: "accounts"
+  # profile to be loaded
+  profiles:
+    active: "prod"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  # config server url
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+    server:
+      monitor:
+        validation-filter-enabled: false
+  http:
+    serviceclient:
+      loans:
+        base-url: lb://loans
+      cards:
+        base-url: lb://cards
+
+build:
+  version: "1.0"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # enable and expose all management endpoints supported by spring boot actuator
+  # makes accounts to be shutdown and the endpoint to make request to by eurekaserver has already being exposed
+  endpoint:
+    shutdown:
+      access: unrestricted
+  info:
+    env:
+      enabled: true
+
+eureka:
+  instance:
+    # accounts should register its ip address instead of domain name to the registry
+    preferIpAddress: true
+  client:
+    # should fetch details from the registry
+    fetchRegistry: true
+    # should register itself to the registry
+    registerWithEureka: true
+    # url that eureka expose its functionalities and other ms visit to discover services
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+# details to show in eureka dashboard when accounts register itself
+info:
+  app:
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+    version: "1.0.0"
+
+logging:
+  pattern:
+    console: ${CONSOLE_LOG_PATTERN:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %cyan(%msg%n)}
